@@ -23,7 +23,7 @@ customerJsonSchema = StructType([
     StructField("birthDay", StringType()),
 ])
 
-# create a StructType for the Kafka stedi-events topic which has the Customer Risk JSON that comes from Redis- before Spark 3.0.0, schema inference is not automatic
+# create a StructType for the Kafka starter-events topic which has the Customer Risk JSON that comes from Redis- before Spark 3.0.0, schema inference is not automatic
 stediEventSchema = StructType([
     StructField("customer", StringType()),
     StructField("score", FloatType()),
@@ -41,7 +41,7 @@ spark.sparkContext.setLogLevel("WARN")
 kafkaRedisDF = spark \
     .readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("kafka.bootstrap.servers", "kafka:19092") \
     .option("subscribe", "redis-server") \
     .option("startingOffsets", "earliest") \
     .load()
@@ -124,7 +124,7 @@ emailAndBirthDayStreamingDF = emailAndBirthDayStreamingDF.select("email", "birth
 kafkaEventsDF = spark \
     .readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("kafka.bootstrap.servers", "kafka:19092") \
     .option("subscribe", "stedi-events") \
     .option("startingOffsets", "earliest") \
     .load()
@@ -174,9 +174,9 @@ scoreStreamingDF.selectExpr("TO_JSON(struct(*)) AS value") \
     .writeStream \
     .outputMode('append') \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("kafka.bootstrap.servers", "kafka:19092") \
     .option("FailOnDataLoss", "false") \
-    .option("checkpointLocation", "/tmp/kafkacheckpoint") \
+    .option("checkpointLocation", "/tmp/kafkacheckpoint1") \
     .option("topic", "customer-risk") \
     .start() \
     .awaitTermination()

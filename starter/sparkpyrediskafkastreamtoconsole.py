@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, to_json, col, unbase64, base64, split, expr
-from pyspark.sql.types import StructField, StructType, StringType, BooleanType, ArrayType, DateType
+from pyspark.sql.types import StructField, StructType, StringType, BooleanType, ArrayType, DateType, FloatType
 
 # create a StructType for the Kafka redis-server topic which has all changes made to Redis - before Spark 3.0.0, schema inference is not automatic
 kafkaRedisSchema = StructType([
@@ -42,7 +42,7 @@ spark.sparkContext.setLogLevel("WARN")
 kafkaRedisDF = spark \
     .readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("kafka.bootstrap.servers", "kafka:19092") \
     .option("subscribe", "redis-server") \
     .option("startingOffsets", "earliest") \
     .load()
@@ -145,5 +145,6 @@ emailAndBirthDayStreamingDF = emailAndBirthDayStreamingDF.select("email", "birth
 emailAndBirthDayStreamingDF.writeStream \
     .outputMode("append") \
     .format("console") \
+    .option("checkpointLocation", "/tmp/kafkacheckpoint") \
     .start() \
     .awaitTermination()

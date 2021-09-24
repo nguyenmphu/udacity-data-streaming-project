@@ -10,7 +10,7 @@ spark.sparkContext.setLogLevel('WARN')
 kafkaEventsStreamingDF = spark \
     .readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("kafka.bootstrap.servers", "kafka:19092") \
     .option("subscribe", "stedi-events") \
     .option("startingOffsets", "earliest") \
     .load()
@@ -61,5 +61,6 @@ customerRiskStreamingDF = spark.sql("SELECT customer, score FROM CustomerRisk")
 customerRiskStreamingDF.writeStream \
     .outputMode("append") \
     .format("console") \
+    .option("checkpointLocation", "/tmp/kafkacheckpoint") \
     .start() \
     .awaitTermination()
