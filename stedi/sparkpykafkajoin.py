@@ -49,7 +49,7 @@ kafkaRedisDF = spark \
 # cast the value column in the streaming dataframe as a STRING
 kafkaRedisDF = kafkaRedisDF.selectExpr("CAST(value AS string) value")
 
-# TO-DO:; parse the single column "value" with a json object in it, like this:
+# parse the single column "value" with a json object in it, like this:
 # +------------+
 # | value      |
 # +------------+
