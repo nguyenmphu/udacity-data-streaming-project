@@ -148,7 +148,7 @@ kafkaEventsDF = kafkaEventsDF.selectExpr("CAST(value AS string) value")
 #
 # storing them in a temporary view called CustomerRisk
 kafkaEventsDF.withColumn("value", from_json("value", stediEventSchema)) \
-    .select(col("value.customer"), col("value.score"), col("value.riskDate")) \
+    .select("value.*") \
     .createOrReplaceTempView("CustomerRisk")
 
 # execute a sql statement against a temporary view, selecting the customer and the score from the temporary view, creating a dataframe called customerRiskStreamingDF
@@ -170,13 +170,21 @@ scoreStreamingDF = customerRiskStreamingDF.join(emailAndBirthDayStreamingDF, exp
 # +--------------------+-----+--------------------+---------+
 #
 # In this JSON Format {"customer":"Santosh.Fibonnaci@test.com","score":"28.5","email":"Santosh.Fibonnaci@test.com","birthYear":"1963"}
-scoreStreamingDF.selectExpr("TO_JSON(struct(*)) AS value") \
+query = scoreStreamingDF.selectExpr("TO_JSON(struct(*)) AS value") \
     .writeStream \
     .outputMode('append') \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "kafka:19092") \
     .option("FailOnDataLoss", "false") \
-    .option("checkpointLocation", "/tmp/kafkacheckpoint1") \
+    .option("checkpointLocation", "/tmp/kafkacheckpoint0") \
     .option("topic", "customer-risk") \
-    .start() \
-    .awaitTermination()
+    .start()
+
+console_query = scoreStreamingDF.selectExpr("TO_JSON(struct(*)) AS value") \
+    .writeStream \
+    .outputMode("append") \
+    .format("console") \
+    .start()
+
+console_query.awaitTermination()
+query.awaitTermination()
